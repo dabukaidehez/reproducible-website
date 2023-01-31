@@ -139,6 +139,19 @@
           </div>
         </template>
       </Table>
+      <div class="paginationWrap">
+        <div>
+          <Page
+            show-sizer
+            show-elevator
+            show-total
+            :total="detailTableTotal"
+            :current="detailTablePageNum"
+            @on-change="changeDetailTablePage"
+            @on-page-size-change="changeDetailTableSize"
+          ></Page>
+        </div>
+      </div>
     </div>
     <Footer></Footer>
   </div>
@@ -249,6 +262,9 @@ export default {
       detailTitle: '',
       mainLoading: false,
       stringList: [], // mainTable接口获取的参数，用于调用detailTable
+      detailTableTotal: 0,
+      detailTablePageNum: 1,
+      detailTablePageSize: 10,
     };
   },
   methods: {
@@ -337,12 +353,15 @@ export default {
             });
           });
 
+          this.detailTablePageNum = 1;
           this.getDetailTableData({
             architectures: this.architecture,
             testSuites: this.testedSuite,
             term1: this.$route.query.term1,
             term2: this.$route.query.term2,
             stringList: this.stringList,
+            pageNum: 1,
+            pageSize: this.detailTablePageSize,
           });
         })
         .catch(() => {
@@ -392,6 +411,8 @@ export default {
         architectures: this.architecture,
         testSuites: this.testedSuite,
         stringList: this.stringList,
+        pageNum: this.detailTablePageNum,
+        pageSize: this.detailTablePageSize,
       }
     ) {
       this.detailLoading = true;
@@ -400,8 +421,9 @@ export default {
         .then((res) => {
           this.detailTableData = [];
           this.detailLoading = false;
-          this.setDetailTitle(data, res.length);
-          res.forEach((v) => {
+          this.setDetailTitle(data, res.total);
+          this.detailTableTotal = res.total;
+          res.data.forEach((v) => {
             this.detailTableData.push({
               tableId: v.tableId,
               categoryLevel: v.categoryLevel,
@@ -422,6 +444,31 @@ export default {
           this.detailLoading = false;
           console.log('select接口调用失败');
         });
+    },
+    changeDetailTablePage(page) {
+      this.detailTablePageNum = page;
+      this.getDetailTableData({
+        architectures: this.architecture,
+        testSuites: this.testedSuite,
+        term1: this.$route.query.term1,
+        term2: this.$route.query.term2,
+        stringList: this.stringList,
+        pageNum: this.detailTablePageNum,
+        pageSize: this.detailTablePageSize,
+      });
+    },
+    changeDetailTableSize(pageSize) {
+      this.detailTablePageSize = pageSize;
+      this.detailTablePageNum = 1;
+      this.getDetailTableData({
+        architectures: this.architecture,
+        testSuites: this.testedSuite,
+        term1: this.$route.query.term1,
+        term2: this.$route.query.term2,
+        stringList: this.stringList,
+        pageNum: this.detailTablePageNum,
+        pageSize: this.detailTablePageSize,
+      });
     },
     clickTestResult(row, type, resultIndex) {
       this.$router.push({
@@ -463,12 +510,15 @@ export default {
   },
   watch: {
     $route() {
+      this.detailTablePageNum = 1;
       this.getDetailTableData({
         architectures: this.architecture,
         testSuites: this.testedSuite,
         term1: this.$route.query.term1,
         term2: this.$route.query.term2,
         stringList: this.stringList,
+        pageNum: 1,
+        pageSize: this.detailTablePageSize,
       });
     },
     homeTested() {
@@ -577,6 +627,12 @@ export default {
 
     .testResultImg {
       vertical-align: middle;
+    }
+
+    .paginationWrap {
+      margin: 10px;
+      display: flex;
+      justify-content: end;
     }
   }
 
