@@ -10,8 +10,8 @@ module.exports = {
     compress: true,
     proxy: {
       '/api': {
-        target: 'http://192.168.0.16:80/',
-        // target: 'http://124.71.172.144:9010/', // 华为云
+        target: 'http://192.168.0.88:9991/',
+        // target: 'https://reproducible-builds.mindspore.cn', // 华为云
         // pathRewrite: {
         //   '^/api': '',
         // },
